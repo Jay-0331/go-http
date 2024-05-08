@@ -9,10 +9,6 @@ type Response struct {
 	Body       string
 }
 
-var (
-	HTTPVersion = "HTTP/1.1"
-)
-
 const (
 	CRLF = "\r\n"
 )

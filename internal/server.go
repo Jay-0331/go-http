@@ -13,6 +13,8 @@ type Server struct {
 	net.Listener
 }
 
+var HTTPVersion = "HTTP/1.1"
+
 func NewServer(port int, host string) *Server {
 	server := &Server{
 		Port: port, 
@@ -22,19 +24,19 @@ func NewServer(port int, host string) *Server {
 	return server
 }
 
-func (s *Server) Start() {
+func (server *Server) Start() {
 	// Implement the server start logic here
-	listener, err := net.Listen("tcp", s.Host + ":" + strconv.Itoa(s.Port))
+	listener, err := net.Listen("tcp", server.Host + ":" + strconv.Itoa(server.Port))
 	if err != nil {
-		fmt.Println("Failed to bind to port ", s.Port)
+		fmt.Println("Failed to bind to port ", server.Port)
 		os.Exit(1)
 	}
-	s.Listener = listener
+	server.Listener = listener
 }
 
-func (s *Server) Accept() net.Conn {
+func (server *Server) Accept() net.Conn {
 	// Implement the server accept logic here
-	conn, err := s.Listener.Accept()
+	conn, err := server.Listener.Accept()
 	if err != nil {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
@@ -42,12 +44,40 @@ func (s *Server) Accept() net.Conn {
 	return conn
 }
 
-func (s *Server) Send(conn net.Conn, body string, statusCode int, statusText string, headers map[string]string) {
+func (server *Server) Close() {
+	// Implement the server close logic here
+	server.Listener.Close()
+}
+
+func (server *Server) Send(conn net.Conn, body string, statusCode int, statusText string, headers map[string]string) {
 	// Implement the server send logic here
-	res := NewResponse(statusCode, headers, body, statusText)
-	_, err := conn.Write([]byte(res.String()))
+	req := server.Receive(conn)
+	switch req.Path {
+	case "/":
+		res := NewResponse(statusCode, headers, body, statusText)
+		writeResp(conn, res.String())
+	default:
+		res := NewResponse(404, headers, "Not Found", "Not Found")
+		writeResp(conn, res.String())
+	}
+}
+
+func (server *Server) Receive(conn net.Conn) *Request {
+	// Implement the server receive logic here
+	buf := make([]byte, 1024)
+	n, err := conn.Read(buf)
 	if err != nil {
-		fmt.Println("Error sending response: ", err.Error())
+		fmt.Println("Error reading request: ", err.Error())
+		os.Exit(1)
+	}
+	req := ParseRequest(string(buf[:n]))
+	return req
+}
+
+func writeResp(conn net.Conn, resp string) {
+	_, err := conn.Write([]byte(resp))
+	if err != nil {
+		fmt.Println("Error writing response: ", err.Error())
 		os.Exit(1)
 	}
 }
