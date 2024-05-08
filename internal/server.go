@@ -14,7 +14,11 @@ type Server struct {
 }
 
 func NewServer(port int, host string) *Server {
-	server := &Server{Port: port, Host: host, Listener: nil}
+	server := &Server{
+		Port: port, 
+		Host: host, 
+		Listener: nil,
+	}
 	return server
 }
 
@@ -36,4 +40,14 @@ func (s *Server) Accept() net.Conn {
 		os.Exit(1)
 	}
 	return conn
+}
+
+func (s *Server) Send(conn net.Conn, body string, statusCode int, statusText string, headers map[string]string) {
+	// Implement the server send logic here
+	res := NewResponse(statusCode, headers, body, statusText)
+	_, err := conn.Write([]byte(res.String()))
+	if err != nil {
+		fmt.Println("Error sending response: ", err.Error())
+		os.Exit(1)
+	}
 }

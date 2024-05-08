@@ -10,5 +10,6 @@ import (
 func main() {
 	server := server.NewServer(4221, "0.0.0.0")
 	server.Start()
-	_ = server.Accept()
+	conn := server.Accept()
+	server.Send(conn, "", 200, "OK", nil)
 }
