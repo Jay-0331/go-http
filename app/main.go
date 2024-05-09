@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"strconv"
 
 	server "github.com/codecrafters-io/http-server-starter-go/internal"
@@ -10,6 +11,23 @@ func main() {
 	router := server.NewRouter()
 	router.GET("/", func(ctx server.Context) string {
 		return ctx.Send("", 200, "OK", nil)
+	})
+	router.GET(("/files/:filename"), func(ctx server.Context) string {
+		file, err := os.Open(ctx.GetFilepath() + "/" + ctx.Request.GetParam("filename"))
+		if err != nil {
+			return ctx.Send("", 404, "Not Found", nil)
+		}
+		defer file.Close()
+		fileStat, err := file.Stat()
+		if err != nil {
+			return ctx.Send("", 500, "Internal Server Error", nil)
+		}
+		if fileStat.IsDir() {
+			return ctx.Send("", 404, "Not Found", nil)
+		}
+		fileContent := make([]byte, fileStat.Size())
+		file.Read(fileContent)
+		return ctx.Send(string(fileContent), 200, "OK", map[string]string{"Content-Type": "application/octet-stream", "content-length": strconv.Itoa(len(fileContent))})
 	})
 	router.GET("/echo/:message", func(ctx server.Context) string {
 		message := ctx.Request.GetParam("message")

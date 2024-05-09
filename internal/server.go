@@ -1,6 +1,7 @@
 package server
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -28,6 +29,8 @@ func NewServer(port int, host string, router Router) *Server {
 
 func (server *Server) Start() {
 	// Implement the server start logic here
+	dir := flag.String("directory", ".", "the directory to serve files from. Defaults to the current dir.")
+	flag.Parse()
 	listener, err := net.Listen("tcp", server.Host + ":" + strconv.Itoa(server.Port))
 	if err != nil {
 		fmt.Println("Failed to bind to port ", server.Port)
@@ -39,6 +42,7 @@ func (server *Server) Start() {
 		go func(conn net.Conn) {
 			defer conn.Close()
 			ctx := NewContext()
+			ctx.SetFilepath(*dir)
 			ctx.Request = server.Receive(conn)
 			for _, handlers := range server.Router.MatchRoute(ctx.Request.Method, ctx.Request.Path) {
 				for key, value := range handlers.params {

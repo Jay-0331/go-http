@@ -3,6 +3,7 @@ package server
 type Context struct {
 	Request  *Request
 	Response *Response
+	filepath string
 }
 
 func NewContext() *Context {
@@ -26,4 +27,12 @@ func (c *Context) SetRequest(request *Request) {
 
 func (c *Context) SetSatusCode(statusCode int) {
 	c.Response.StatusCode = statusCode
+}
+
+func (c *Context) SetFilepath(filepath string) {
+	c.filepath = filepath
+}
+
+func (c *Context) GetFilepath() string {
+	return c.filepath
 }
