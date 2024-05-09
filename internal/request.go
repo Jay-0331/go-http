@@ -9,7 +9,7 @@ type Request struct {
 	Method string
 	Path   string
 	headers map[string]string
-	Body string
+	body string
 	params map[string]string
 }
 
@@ -25,22 +25,25 @@ func ParseRequest(input string) *Request {
 		Method: "",
 		Path: "",
 		headers: make(map[string]string),
-		Body: "",
+		body: "",
 		params: make(map[string]string),
 	}
 	reader.Scan()
-	req.ParseRequestLine(reader.Text())
+	req.parseRequestLine(reader.Text())
 	for reader.Scan() {
 		// Implement the request parsing logic here
 		if reader.Text() == "" {
 			break
 		}
-		req.ParseRequestHeader(reader.Text())
+		req.parseRequestHeader(reader.Text())
+	}
+	if reader.Scan() {
+		req.setBody(reader.Text())
 	}
 	return req
 }
 
-func (r *Request) ParseRequestLine(line string) {
+func (r *Request) parseRequestLine(line string) {
 	parts := strings.Split(line, " ")
 	HTTPVersion = parts[2]
 	if len(parts) == 3 {
@@ -49,11 +52,15 @@ func (r *Request) ParseRequestLine(line string) {
 	}
 }
 
-func (r *Request) ParseRequestHeader(line string) {
+func (r *Request) parseRequestHeader(line string) {
 	parts := strings.Split(line, ": ")
 	if len(parts) == 2 {
 		r.headers[strings.ToLower(parts[0])] = strings.ToLower(parts[1])
 	}
+}
+
+func (r *Request) setBody(body string) {
+	r.body = body
 }
 
 func (r *Request) AddParam(key, value string) {
@@ -66,4 +73,8 @@ func (r *Request) GetParam(key string) string {
 
 func (r *Request) GetHeader(key string) string {
 	return r.headers[key]
+}
+
+func (r *Request) GetBody() string {
+	return r.body
 }

@@ -12,6 +12,15 @@ func main() {
 	router.GET("/", func(ctx server.Context) string {
 		return ctx.Send("", 200, "OK", nil)
 	})
+	router.POST("/files/:filename", func(ctx server.Context) string {
+		file, err := os.OpenFile(ctx.GetFilepath() + "/" + ctx.Request.GetParam("filename"), os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return ctx.Send("", 500, "Internal Server Error", nil)
+		}
+		defer file.Close()
+		file.Write([]byte(ctx.Request.GetBody()))
+		return ctx.Send("", 201, "Created", nil)
+	})
 	router.GET(("/files/:filename"), func(ctx server.Context) string {
 		file, err := os.Open(ctx.GetFilepath() + "/" + ctx.Request.GetParam("filename"))
 		if err != nil {
