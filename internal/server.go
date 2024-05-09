@@ -11,15 +11,17 @@ type Server struct {
 	Port int
 	Host string
 	net.Listener
+	Router
 }
 
 var HTTPVersion = "HTTP/1.1"
 
-func NewServer(port int, host string) *Server {
+func NewServer(port int, host string, router Router) *Server {
 	server := &Server{
 		Port: port, 
 		Host: host, 
 		Listener: nil,
+		Router: router,
 	}
 	return server
 }
@@ -32,6 +34,19 @@ func (server *Server) Start() {
 		os.Exit(1)
 	}
 	server.Listener = listener
+	conn := server.Accept()
+	ctx := NewContext()
+	ctx.Request = server.Receive(conn)
+	for _, handlers := range server.Router.MatchRoute(ctx.Request.Method, ctx.Request.Path) {
+		for key, value := range handlers.params {
+			ctx.Request.AddParam(key, value)
+		}
+		resp := handlers.handler(*ctx)
+		if resp != "" {
+			conn.Write([]byte(resp))
+			break
+		}
+	}
 }
 
 func (server *Server) Accept() net.Conn {
@@ -49,19 +64,6 @@ func (server *Server) Close() {
 	server.Listener.Close()
 }
 
-func (server *Server) Send(conn net.Conn, body string, statusCode int, statusText string, headers map[string]string) {
-	// Implement the server send logic here
-	req := server.Receive(conn)
-	switch req.Path {
-	case "/":
-		res := NewResponse(statusCode, headers, body, statusText)
-		writeResp(conn, res.String())
-	default:
-		res := NewResponse(404, headers, "Not Found", "Not Found")
-		writeResp(conn, res.String())
-	}
-}
-
 func (server *Server) Receive(conn net.Conn) *Request {
 	// Implement the server receive logic here
 	buf := make([]byte, 1024)
@@ -72,12 +74,4 @@ func (server *Server) Receive(conn net.Conn) *Request {
 	}
 	req := ParseRequest(string(buf[:n]))
 	return req
-}
-
-func writeResp(conn net.Conn, resp string) {
-	_, err := conn.Write([]byte(resp))
-	if err != nil {
-		fmt.Println("Error writing response: ", err.Error())
-		os.Exit(1)
-	}
 }

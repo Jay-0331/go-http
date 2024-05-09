@@ -10,6 +10,7 @@ type Request struct {
 	Path   string
 	Headers map[string]string
 	Body string
+	params map[string]string
 }
 
 type RequestScanner struct {
@@ -32,8 +33,19 @@ func ParseRequest(req string) *Request {
 			return &Request{
 				Method: parts[0],
 				Path: parts[1],
+				Headers: make(map[string]string),
+				Body: "",
+				params: make(map[string]string),
 			}
 		}
 	}
 	return nil
+}
+
+func (r *Request) AddParam(key, value string) {
+	r.params[key] = value
+}
+
+func (r *Request) GetParam(key string) string {
+	return r.params[key]
 }

@@ -13,8 +13,8 @@ const (
 	CRLF = "\r\n"
 )
 
-func NewResponse(statusCode int, headers map[string]string, body string, statusText string) *Response {
-	return &Response{ StatusCode: statusCode, StatusText: statusText, Headers: headers, Body: body }
+func NewResponse() *Response {
+	return &Response{}
 }
 
 func (r *Response) String() string {
