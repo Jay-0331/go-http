@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -64,7 +63,6 @@ func (r *RouterType) MatchRoute(method string, path string) []Handlers {
 			pathParts := strings.Split(path, "/")
 			routeParts := strings.Split(route.path, "/")
 			if len(pathParts) != len(routeParts) {
-				fmt.Println("Path parts not equal")
 				continue
 			}
 			params := make(map[string]string)
