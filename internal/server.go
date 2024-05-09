@@ -34,18 +34,23 @@ func (server *Server) Start() {
 		os.Exit(1)
 	}
 	server.Listener = listener
-	conn := server.Accept()
-	ctx := NewContext()
-	ctx.Request = server.Receive(conn)
-	for _, handlers := range server.Router.MatchRoute(ctx.Request.Method, ctx.Request.Path) {
-		for key, value := range handlers.params {
-			ctx.Request.AddParam(key, value)
-		}
-		resp := handlers.handler(*ctx)
-		if resp != "" {
-			conn.Write([]byte(resp))
-			break
-		}
+	for {
+		conn := server.Accept()
+		go func(conn net.Conn) {
+			defer conn.Close()
+			ctx := NewContext()
+			ctx.Request = server.Receive(conn)
+			for _, handlers := range server.Router.MatchRoute(ctx.Request.Method, ctx.Request.Path) {
+				for key, value := range handlers.params {
+					ctx.Request.AddParam(key, value)
+				}
+				resp := handlers.handler(*ctx)
+				if resp != "" {
+					conn.Write([]byte(resp))
+					break
+				}
+			}
+		}(conn)
 	}
 }
 
