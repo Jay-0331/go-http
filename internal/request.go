@@ -17,6 +17,7 @@ type RequestScanner struct {
 	bufio.Scanner
 }
 
+
 func ParseRequest(input string) *Request {
 	reader := RequestScanner{
 		Scanner: *bufio.NewScanner(strings.NewReader(input)),

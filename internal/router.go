@@ -19,6 +19,7 @@ type RouterType struct {
 	Routes []route
 }
 
+
 type Router interface {
 	AddRoute(method string, path string, handler func(ctx Context) string)
 	MatchRoute(method string, path string) []Handlers

@@ -6,6 +6,13 @@ type Context struct {
 	filepath string
 }
 
+var code_map = map[int]string{
+	200: "OK",
+	201: "Created",
+	404: "Not Found",
+	500: "Internal Server Error",
+}
+
 func NewContext() *Context {
 	return &Context{
 		Request: nil,
@@ -13,11 +20,11 @@ func NewContext() *Context {
 	}
 }
 
-func (c *Context) Send(body string, statusCode int, statusText string, headers map[string]string) string {
+func (c *Context) Send(body string, statusCode int, headers map[string]string) string {
 	c.Response.StatusCode = statusCode
-	c.Response.StatusText = statusText
-	c.Response.Headers = headers
-	c.Response.Body = body
+	c.Response.StatusText = code_map[statusCode]
+	c.Response.SetBody(body)
+	c.Response.SetHeaders(headers)
 	return c.Response.String()
 }
 
@@ -27,6 +34,7 @@ func (c *Context) SetRequest(request *Request) {
 
 func (c *Context) SetSatusCode(statusCode int) {
 	c.Response.StatusCode = statusCode
+	c.Response.StatusText = code_map[statusCode]
 }
 
 func (c *Context) SetFilepath(filepath string) {
