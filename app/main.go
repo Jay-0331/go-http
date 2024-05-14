@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	server "github.com/codecrafters-io/http-server-starter-go/internal"
 )
@@ -39,8 +40,8 @@ func main() {
 	})
 	router.GET("/echo/:message", func(ctx server.Context) string {
 		message := ctx.Request.GetParam("message")
-		if ctx.Request.GetHeader("accept-encoding") != "invalid-encoding" {
-			ctx.Response.SetHeader("content-encoding", "gzip")
+		if strings.Contains(ctx.Request.GetHeader("accept-encoding"), "gzip") {
+			ctx.Response.SetHeader("Content-Encoding", "gzip")
 		}
 		return ctx.Send(message, 200, nil)
 	})
