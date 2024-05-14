@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"os"
 	"strings"
 
@@ -42,6 +44,11 @@ func main() {
 		message := ctx.Request.GetParam("message")
 		if strings.Contains(ctx.Request.GetHeader("accept-encoding"), "gzip") {
 			ctx.Response.SetHeader("Content-Encoding", "gzip")
+			buffer := new(bytes.Buffer)
+			gzipWriter := gzip.NewWriter(buffer)
+			gzipWriter.Write([]byte(message))
+			gzipWriter.Close()
+			message = buffer.String()
 		}
 		return ctx.Send(message, 200, nil)
 	})
